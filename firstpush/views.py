@@ -22,3 +22,18 @@ def plot_view(request):
 
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
+def plotbar_view(request):
+    fig, ax = plt.subplots()
+    x = ['A', 'B', 'C', 'D', 'E']
+    y = [7, 8, 4, 20, 17]
+    ax.bar(x, y)  # เปลี่ยนจาก ax.plot เป็น ax.bar
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close(fig)
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+
+
