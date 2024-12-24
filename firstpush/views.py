@@ -35,5 +35,20 @@ def plotbar_view(request):
 
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
+def plotscatter_view(request):
+    fig, ax = plt.subplots()
+    x = [1, 2, 3, 4, 5]
+    y = [5, 7, 9, 6, 4]
+    ax.scatter(x, y)  # ใช้ scatter แทน plot หรือ bar
 
+    ax.set_title('Scatter Plot Example')  # เพิ่มชื่อกราฟ
+    ax.set_xlabel('X-axis')  # ชื่อแกน X
+    ax.set_ylabel('Y-axis')  # ชื่อแกน Y
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close(fig)
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
 
