@@ -52,3 +52,17 @@ def plotscatter_view(request):
 
     return HttpResponse(buffer.getvalue(), content_type='image/png')
 
+def plotpie_view(request):
+    fig, ax = plt.subplots()
+    sizes = [15, 30, 45, 10]
+    labels = ['A', 'B', 'C', 'D']
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%')  # ใช้ ax.pie
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close(fig)
+    buffer.seek(0)
+
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
+
+

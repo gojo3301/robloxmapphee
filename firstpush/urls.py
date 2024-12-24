@@ -6,4 +6,5 @@ urlpatterns = [
     path('plot/', views.plot_view, name='plot'),
     path('plotbar/', views.plotbar_view, name='plotbar'),
     path('plotscatter/', views.plotscatter_view, name='plotscatter'),
+    path('plotpie/', views.plotpie_view, name='plotpie'),
 ]
