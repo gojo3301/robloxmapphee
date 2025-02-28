@@ -13,9 +13,39 @@
     <nav>
         <div class="navbar">
             <ul>
-                <li><a href="{% url 'user_logout' %}">Logout</a></li>  <!-- ปุ่ม Logout -->
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'user_logout' %}">Logout</a></li>  
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>  
+                {% endif %}
             </ul>
         </div>
     </nav>
+
+    <!-- ✅ ฟอร์มค้นหา -->
+    <form method="GET" action="{% url 'home' %}">
+        <input type="text" name="search" placeholder="ค้นหาสินค้า..." value="{{ search_query|default:'' }}">
+        <button type="submit">ค้นหา</button>
+    </form>
+
+    <!-- แสดงสินค้าหลังจากล็อกอิน -->
+    <div class="product-list">
+        <h2>สินค้า</h2>
+        {% if products %}
+            <ul>
+                {% for product in products %}
+                    <li>
+                        <h3>{{ product.name }}</h3>
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" width="150">
+                        <p>{{ product.description }}</p>
+                        <p><strong>ราคา:</strong> {{ product.price }} บาท</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>ไม่พบสินค้าที่ค้นหา</p>  <!-- ✅ ถ้าหาไม่เจอ -->
+        {% endif %}
+    </div>
+
 </body>
 </html>
