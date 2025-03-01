@@ -123,13 +123,23 @@
 
     <!-- ✅ Navbar -->
     <nav class="navbar">
+        <!-- ✅ ชื่อร้านค้า -->
+        <a href="{% url 'home' %}" class="brand">🔋 มีโชคแบตเตอรี่</a>
+
+        <!-- ✅ เมนูด้านซ้าย -->
         <ul>
             <li><a href="{% url 'home' %}">🏠 หน้าหลัก</a></li>
-            <li><a href="{% url 'cart_view' %}">🛒 ตะกร้าสินค้า <span id="cart-count">{{ cart_count }}</span></a></li>
+            <li>
+                <a href="{% url 'cart_view' %}">🛒 ตะกร้าสินค้า 
+                    <span id="cart-count">{{ cart_count }}</span>
+                </a>
+            </li>
             {% if user.is_authenticated %}
                 <li><a href="{% url 'payment_status' %}" class="btn-status">📋 ติดตามการชำระเงิน</a></li>
             {% endif %}
         </ul>
+
+        <!-- ✅ เมนูด้านขวา (เข้าสู่ระบบ / ออกจากระบบ) -->
         <ul>
             {% if user.is_authenticated %}
                 <li><a href="{% url 'user_logout' %}" class="btn-status">🚪 ออกจากระบบ</a></li>
@@ -149,7 +159,7 @@
 
     <!-- ✅ แสดงสินค้า -->
     <div class="product-list">
-        <h2 style="text-align: center; width: 100%;">🔋 สินค้าแบตเตอรี่</h2>
+        <h2 style="text-align: center; width: 100%;">🔋 สินค้า</h2>
         {% if products %}
             {% for product in products %}
                 <div class="product-item">

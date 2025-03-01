@@ -1,50 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - หน้าชำระเงิน</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .checkout-container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .cart-list {
+            list-style: none;
+            padding: 0;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .cart-item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 15px;
+        }
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        .total-price {
+            text-align: right;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        .payment-details {
+            background: #eef5ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .upload-slip {
+            margin-top: 20px;
+        }
+        .btn-confirm, .btn-cancel {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-confirm {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+        }
+        #slipPreview {
+            display: none;
+            width: 120px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
 <div class="checkout-container">
-    <h1 class="text-2xl font-semibold text-center">💳 หน้าชำระเงิน</h1>
+    <h1 class="text-center"><i class="fas fa-credit-card"></i> หน้าชำระเงิน</h1>
 
     <!-- ✅ แสดงรายการสินค้าในตะกร้า -->
     <div class="order-summary">
-        <h2 class="text-xl font-semibold">📦 สรุปคำสั่งซื้อ</h2>
+        <h2><i class="fas fa-box"></i> สรุปคำสั่งซื้อ</h2>
         {% if cart_items %}
             <ul class="cart-list">
                 {% for item in cart_items %}
                     <li class="cart-item">
                         <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
                         <div class="cart-item-details">
-                            <p class="product-name">{{ item.product.name }}</p>
+                            <p class="fw-bold">{{ item.product.name }}</p>
                             <p>จำนวน: {{ item.quantity }} ชิ้น</p>
                             <p>ราคา: {{ item.product.price }} บาท</p>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
-            <h3 class="total-price">💰 ราคารวมทั้งหมด: <strong>{{ total_price }} บาท</strong></h3>
+            <h3 class="total-price"><i class="fas fa-coins"></i> ราคารวมทั้งหมด: <strong>{{ total_price }} บาท</strong></h3>
         {% else %}
-            <p>❌ ไม่มีสินค้าในตะกร้า</p>
+            <p class="text-danger text-center">❌ ไม่มีสินค้าในตะกร้า</p>
         {% endif %}
     </div>
 
     <!-- ✅ ข้อมูลการโอนเงิน -->
     <div class="payment-details">
-        <h2 class="text-xl font-semibold">🏦 รายละเอียดการโอนเงิน</h2>
+        <h2><i class="fas fa-university"></i> รายละเอียดการโอนเงิน</h2>
         <p><strong>ธนาคาร:</strong> กสิกรไทย</p>
         <p><strong>เลขบัญชี:</strong> 123-4-56789-0</p>
         <p><strong>PromptPay:</strong> 061-552-3444</p>
-        <p>💡 กรุณาโอนเงินและอัปโหลดสลิปเพื่อยืนยันการชำระเงิน</p>
+        <p class="text-muted">💡 กรุณาโอนเงินและอัปโหลดสลิปเพื่อยืนยันการชำระเงิน</p>
     </div>
 
     <!-- ✅ ฟอร์มอัปโหลดสลิป -->
     <div class="upload-slip">
-        <h2 class="text-xl font-semibold">📤 อัปโหลดสลิปโอนเงิน</h2>
+        <h2><i class="fas fa-upload"></i> อัปโหลดสลิปโอนเงิน</h2>
         <form action="{% url 'process_order' %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <input type="file" name="payment_slip" accept="image/*" required id="slipUpload">
-            <img id="slipPreview" src="#" alt="ตัวอย่างสลิป" style="display:none; width: 100px; margin-top: 10px;">
-            <button type="submit" class="btn-confirm">✅ ส่งหลักฐานการชำระเงิน</button>
+            <input type="file" name="payment_slip" accept="image/*" required id="slipUpload" class="form-control">
+            <img id="slipPreview" src="#" alt="ตัวอย่างสลิป">
+            <button type="submit" class="btn-confirm"><i class="fas fa-check-circle"></i> ส่งหลักฐานการชำระเงิน</button>
         </form>
     </div>
 
     <!-- ✅ ปุ่มยกเลิกการชำระเงิน -->
-    <button onclick="window.location.href='/'" class="btn-cancel">❌ ยกเลิกการชำระเงิน</button>
+    <button onclick="window.location.href='/'" class="btn-cancel"><i class="fas fa-times-circle"></i> ยกเลิกการชำระเงิน</button>
 </div>
 
 <script>
@@ -58,3 +139,6 @@
         reader.readAsDataURL(event.target.files[0]);
     });
 </script>
+
+</body>
+</html>
