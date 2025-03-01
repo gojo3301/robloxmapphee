@@ -1,0 +1,85 @@
+<div class="payment-status-container">
+    <h1 class="text-2xl font-semibold text-center">📋 ประวัติการสั่งซื้อ</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-box">
+            <h2>📄 รายละเอียดการสั่งซื้อ</h2>
+            <p><strong>วันที่สั่งซื้อ:</strong> {{ order.created_at }}</p>        
+
+                <table class="order-table">
+                    <tr>
+                        <th>สินค้า</th>
+                        <th>จำนวน</th>
+                        <th>ราคา</th>
+                    </tr>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.product.price }} บาท</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <h3 class="total-price">💰 ราคารวม: <strong>{{ order.total_price }}</strong> บาท</h3>
+
+                <h2 class="text-xl font-semibold">💳 สถานะการชำระเงิน</h2>
+                {% if order.status == "waiting_payment" %}
+                    <p class="status pending">⏳ กำลังดำเนินการ (รอแอดมินตรวจสอบ)</p>
+                {% elif order.status == "completed" %}
+                    <p class="status success">✅ ชำระเงินเสร็จสิ้น</p>
+                {% elif order.status == "canceled" %}
+                    <p class="status failed">❌ คำสั่งซื้อถูกยกเลิก</p>
+                {% else %}
+                    <p class="status unknown">❓ สถานะไม่ทราบ</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>❌ ไม่มีประวัติการสั่งซื้อ</p>
+    {% endif %}
+
+    <div class="shop-more-container">
+        <a href="{% url 'home' %}" class="btn-shop-more">🛍 เลือกซื้อสินค้าต่อ</a>
+    </div>
+</div>
+
+<style>
+    .payment-status-container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .order-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .order-table th, .order-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    .btn-shop-more {
+        display: block;
+        text-align: center;
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    .btn-shop-more:hover {
+        background-color: #0056b3;
+    }
+</style>

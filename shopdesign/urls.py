@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from . import views
 
 from .views import (
     authView, home, user_logout, 
@@ -32,7 +33,12 @@ urlpatterns = [
     path("cart/remove/<int:item_id>/", remove_from_cart, name="remove_from_cart"),
     path("cart/count/", cart_count, name="cart_count"),
 
+    # ✅ หน้าชำระเงิน
+    path("checkout/", views.checkout, name="checkout"),  # ✅ เส้นทางหน้าชำระเงิน
+    path("order/process/", views.process_order, name="process_order"),  # ✅ เพิ่มเส้นทาง process_order
 
+    # ✅ สถานะการชำระเงิน
+    path("payment-status/", views.payment_status, name="payment_status"),
 ]
 
 # ✅ เสริมการแสดงผลรูปภาพ (Media Files)

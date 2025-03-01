@@ -11,21 +11,24 @@ class Product(models.Model):
         return self.name
 
 class Order(models.Model):
-    STATUS_CHOICES = [
-        ("pending", "รอยืนยัน"),
-        ("waiting_payment", "รอแอดมินตรวจสอบ"),
-        ("completed", "สำเร็จ"),
-        ("canceled", "ยกเลิก"),
-    ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    is_completed = models.BooleanField(default=False)  # คำสั่งซื้อเสร็จสมบูรณ์หรือไม่
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")  # ✅ เพิ่มสถานะ
-    payment_slip = models.ImageField(upload_to='payment_slips/', blank=True, null=True)  # ✅ เพิ่มสลิปโอนเงิน
+    is_completed = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("pending", "รอยืนยัน"),
+            ("waiting_payment", "รอแอดมินตรวจสอบ"),
+            ("completed", "สำเร็จ"),
+            ("canceled", "ยกเลิก"),
+        ],
+        default="pending"
+    )
+    payment_slip = models.ImageField(upload_to='payment_slips/', blank=True, null=True)
 
-    def __str__(self):
-        return f"Order {self.id} - {self.status} by {self.user.username if self.user else 'Guest'}"
+    @property
+    def total_price(self):
+        return sum(item.product.price * item.quantity for item in self.items.all())
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")

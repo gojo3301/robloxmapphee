@@ -3,31 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Battery Shop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* ✅ ปรับโทนสีหลัก */
+        :root {
+            --primary-color: #007bff;  /* น้ำเงิน */
+            --secondary-color: #28a745;  /* เขียว */
+            --highlight-color: #ffc107;  /* เหลือง */
+            --text-color: #333;
+            --background-color: #fff;
+        }
+
         body {
             font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
         }
+
+        /* ✅ Navbar */
         .navbar {
-            background-color: #333;
-            padding: 10px;
+            background-color: var(--primary-color);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
         .navbar ul {
             list-style-type: none;
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: space-between;
         }
         .navbar li {
-            display: inline;
-            margin-right: 15px;
+            margin: 0 15px;
         }
         .navbar a {
             color: white;
             text-decoration: none;
+            font-weight: bold;
         }
+        .btn-status {
+            background-color: var(--highlight-color);
+            color: black;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-status:hover {
+            background-color: #e0a800;
+        }
+
+        /* ✅ ฟอร์มค้นหา */
+        .search-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .search-container input {
+            padding: 10px;
+            width: 300px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+        }
+        .search-container button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        /* ✅ รายการสินค้า */
         .product-list {
             display: flex;
             flex-wrap: wrap;
@@ -36,56 +89,67 @@
             margin-top: 20px;
         }
         .product-item {
-            border: 1px solid #ddd;
+            border: 2px solid var(--secondary-color);
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            width: 250px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            width: 260px;
+            background-color: white;
+            box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.1);
         }
         .product-item img {
             max-width: 100%;
             border-radius: 10px;
         }
+        .product-item h3 {
+            color: var(--primary-color);
+        }
         .product-item button {
-            background-color: #28a745;
-            color: white;
+            background-color: var(--highlight-color);
+            color: black;
             border: none;
-            padding: 8px 12px;
+            padding: 10px 15px;
             cursor: pointer;
             border-radius: 5px;
             margin-top: 10px;
+            font-weight: bold;
         }
         .product-item button:hover {
-            background-color: #218838;
+            background-color: #e0a800;
         }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav>
-        <div class="navbar">
-            <ul>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'cart_view' %}">🛒 ตะกร้าสินค้า <span id="cart-count">0</span></a></li>  
-                    <li><a href="{% url 'user_logout' %}">Logout</a></li>  
-                {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>  
-                {% endif %}
-            </ul>
-        </div>
+    <!-- ✅ Navbar -->
+    <nav class="navbar">
+        <ul>
+            <li><a href="{% url 'home' %}">🏠 หน้าหลัก</a></li>
+            <li><a href="{% url 'cart_view' %}">🛒 ตะกร้าสินค้า <span id="cart-count">{{ cart_count }}</span></a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'payment_status' %}" class="btn-status">📋 ติดตามการชำระเงิน</a></li>
+            {% endif %}
+        </ul>
+        <ul>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'user_logout' %}" class="btn-status">🚪 ออกจากระบบ</a></li>
+            {% else %}
+                <li><a href="{% url 'login' %}" class="btn-status">🔑 เข้าสู่ระบบ</a></li>
+            {% endif %}
+        </ul>
     </nav>
 
     <!-- ✅ ฟอร์มค้นหา -->
-    <form method="GET" action="{% url 'home' %}" style="text-align: center; margin-top: 20px;">
-        <input type="text" name="search" placeholder="ค้นหาสินค้า..." value="{{ search_query|default:'' }}" style="padding: 8px; width: 300px;">
-        <button type="submit" style="padding: 8px 12px; background-color: #007bff; color: white; border: none; cursor: pointer;">ค้นหา</button>
-    </form>
+    <div class="search-container">
+        <form method="GET" action="{% url 'home' %}">
+            <input type="text" name="search" placeholder="🔍 ค้นหาสินค้า..." value="{{ search_query|default:'' }}">
+            <button type="submit">ค้นหา</button>
+        </form>
+    </div>
 
-    <!-- แสดงสินค้าหลังจากล็อกอิน -->
+    <!-- ✅ แสดงสินค้า -->
     <div class="product-list">
-        <h2 style="text-align: center; width: 100%;">สินค้า</h2>
+        <h2 style="text-align: center; width: 100%;">🔋 สินค้าแบตเตอรี่</h2>
         {% if products %}
             {% for product in products %}
                 <div class="product-item">
@@ -94,7 +158,6 @@
                     <p>{{ product.description }}</p>
                     <p><strong>ราคา:</strong> {{ product.price }} บาท</p>
 
-                    <!-- ✅ ปุ่มเพิ่มลงตะกร้าแบบ AJAX -->
                     {% if user.is_authenticated %}
                         <button class="add-to-cart" data-product-id="{{ product.id }}">🛒 เพิ่มลงตะกร้า</button>
                     {% else %}
@@ -103,7 +166,7 @@
                 </div>
             {% endfor %}
         {% else %}
-            <p style="text-align: center; width: 100%;">ไม่พบสินค้าที่ค้นหา</p>
+            <p style="text-align: center; width: 100%;">❌ ไม่พบสินค้าที่ค้นหา</p>
         {% endif %}
     </div>
 
@@ -127,15 +190,27 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showNotification("✅ เพิ่มสินค้าเข้าตะกร้าเรียบร้อย!");
-                        updateCartCount();
+                        updateCartCount();  // ✅ อัปเดตจำนวนสินค้าใน Navbar
+                        alert("✅ เพิ่มสินค้าเข้าตะกร้าเรียบร้อย!");
                     } else {
-                        showNotification("❌ มีบางอย่างผิดพลาด!");
+                        alert("❌ มีบางอย่างผิดพลาด!");
                     }
                 })
                 .catch(error => console.error("Error:", error));
             });
         });
+
+        function updateCartCount() {
+            fetch("/cart/count/")
+            .then(response => response.json())
+            .then(data => {
+                let cartCountElement = document.getElementById("cart-count");
+                if (cartCountElement) {
+                cartCountElement.textContent = data.count;  // ✅ อัปเดตจำนวนสินค้าทันที
+                }
+            })
+            .catch(error => console.error("Error updating cart count:", error));
+        }
 
         function getCSRFToken() {
             let cookies = document.cookie.split(";");
@@ -148,32 +223,7 @@
             return "";
         }
 
-        function updateCartCount() {
-            fetch("/cart/count/")
-            .then(response => response.json())
-            .then(data => {
-                cartCount.textContent = data.count;
-            })
-            .catch(error => console.error("Error updating cart count:", error));
-        }
-
-        function showNotification(message) {
-            let notification = document.createElement("div");
-            notification.textContent = message;
-            notification.style.position = "fixed";
-            notification.style.bottom = "20px";
-            notification.style.right = "20px";
-            notification.style.backgroundColor = "#333";
-            notification.style.color = "white";
-            notification.style.padding = "10px 15px";
-            notification.style.borderRadius = "5px";
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 2000);
-        }
-
+        // ✅ อัปเดตจำนวนสินค้าในตะกร้าเมื่อโหลดหน้า
         updateCartCount();
     });
     </script>

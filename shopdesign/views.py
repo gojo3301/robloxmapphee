@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.conf import settings
 from django.http import JsonResponse
 from .models import Product, Order, OrderItem
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 @login_required
 def home(request):
@@ -96,3 +98,49 @@ def cart_count(request):
     count = order.items.count() if order else 0
     return JsonResponse({"count": count})
 
+@login_required
+def checkout(request):
+    """ ✅ แสดงสินค้าที่มีในตะกร้า และเตรียมข้อมูลสำหรับชำระเงิน """
+    order = Order.objects.filter(user=request.user, is_completed=False).first()
+
+    if not order or not order.items.exists():
+        return render(request, "checkout.html", {"cart_items": [], "total_price": 0})  # ✅ ส่งตะกร้าว่างไปยัง checkout.html
+
+    cart_items = order.items.all()
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    return render(request, "checkout.html", {"cart_items": cart_items, "total_price": total_price})
+
+
+@login_required
+def process_order(request):
+    """ ✅ ยืนยันคำสั่งซื้อ และทำให้คำสั่งซื้อนี้เป็นคำสั่งซื้อที่เสร็จสมบูรณ์ """
+    if request.method == "POST":
+        order, created = Order.objects.get_or_create(user=request.user, is_completed=False)
+        
+        if not order.items.exists():
+            return redirect("cart_view")  # ✅ ถ้าตะกร้าว่างให้กลับไปที่ตะกร้า
+
+        # ✅ ดึงไฟล์สลิปจาก Form
+        payment_slip = request.FILES.get("payment_slip")
+        if payment_slip:
+            order.payment_slip = payment_slip
+            order.status = "waiting_payment"  # ✅ เปลี่ยนสถานะเป็น "รอแอดมินตรวจสอบ"
+
+        # ✅ ปิดคำสั่งซื้อแทนการลบสินค้าออก
+        order.is_completed = True
+        order.save()
+
+        # ✅ สร้างคำสั่งซื้อใหม่เพื่อใช้เป็นตะกร้าครั้งต่อไป
+        Order.objects.create(user=request.user, is_completed=False)
+
+        return redirect("payment_status")  # ✅ ไปที่หน้าประวัติการสั่งซื้อ
+
+    return redirect("home")  # ✅ ถ้าไม่ใช่ POST ให้กลับไปหน้าหลัก
+
+@login_required
+def payment_status(request):
+    """ ✅ แสดงประวัติการสั่งซื้อทั้งหมดของผู้ใช้ """
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")  # ✅ เรียงจากรายการใหม่สุด
+
+    return render(request, "payment_status.html", {"orders": orders})
