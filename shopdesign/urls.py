@@ -5,11 +5,11 @@ from django.conf.urls.static import static
 from .views import (
     auth_view, home, user_logout,  # ✅ แก้จาก `auth_View` เป็น `auth_view`
     add_to_cart, cart_view, remove_from_cart, cart_count,
-    checkout, process_order, payment_status, plot_all_graphs
+    checkout, process_order, payment_status, 
 )
 from .admin_views import (
     admin_dashboard, add_product, delete_product, update_stock,
-    admin_check_orders, update_order_status
+    admin_check_orders, update_order_status, edit_product, analytics_view
 )
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
     # ✅ ตรวจสอบคำสั่งซื้อ
     path("admin-dashboard/orders/", admin_check_orders, name="admin_check_orders"),
     path("admin-dashboard/orders/<int:order_id>/<str:action>/", update_order_status, name="update_order_status"),
+    path("admin-dashboard/edit/<int:product_id>/", edit_product, name="edit_product"),
 
     # ✅ ตะกร้าสินค้า
     path("cart/", cart_view, name="cart_view"),
@@ -40,7 +41,7 @@ urlpatterns = [
     path("order/process/", process_order, name="process_order"),
     path("payment-status/", payment_status, name="payment_status"),
 
-    path('all-graphs/', plot_all_graphs, name='all_graphs'),
+   path('all-graphs/', analytics_view, name='all_graphs'),
 ]
 
 # ✅ เสริมการแสดงผลรูปภาพ (Media Files)

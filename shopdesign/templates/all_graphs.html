@@ -1,24 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Sales Graphs</title>
+    <title>รายงานยอดขาย</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-    <h1>All Sales Graphs</h1>
 
-    <h2>Completed Orders by Date</h2>
-    <img src="data:image/png;base64,{{ graph_url1 }}" alt="Completed Orders by Date">
-
-    <h2>Top Selling Products</h2>
-    <img src="data:image/png;base64,{{ graph_url2 }}" alt="Top Selling Products">
-
-    <h2>Orders by Status</h2>
-    <img src="data:image/png;base64,{{ graph_url3 }}" alt="Orders by Status">
-
-    <h2>Sales by Product</h2>
-    <img src="data:image/png;base64,{{ graph_url4 }}" alt="Sales by Product">
-
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary mb-3">back</a>
+    <div class="container">
+        <h2>Dashboard Analytics</h2>
+        
+    
+        
+        <div class="chart-container">
+            <h3>จำนวนออเดอร์ในแต่ละสถานะ</h3>
+            <img src="data:image/png;base64,{{ order_status_chart }}" class="img-fluid" alt="จำนวนออเดอร์ในแต่ละสถานะ">
+        </div>
+        
+        <div class="chart-container">
+            <h3>จำนวนสินค้าคงเหลือของแต่ละแบตเตอรี่</h3>
+            <img src="data:image/png;base64,{{ battery_stock_chart }}" class="img-fluid" alt="จำนวนสินค้าคงเหลือ">
+        </div>
+        
+        <div class="chart-container">
+            <h3>รายได้รวมในแต่ละเดือน</h3>
+            <img src="data:image/png;base64,{{ revenue_chart }}" class="img-fluid" alt="รายได้รวมในแต่ละเดือน">
+        </div>
+    </div>
 </body>
 </html>

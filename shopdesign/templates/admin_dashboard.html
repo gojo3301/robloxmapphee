@@ -12,9 +12,11 @@
     <nav class="d-flex justify-content-between align-items-center mb-4">
         <h2>Admin Panel - รายการสินค้า</h2>
         <a href="{% url 'user_logout' %}" class="btn btn-danger">Logout</a> 
+        <a href="{% url 'all_graphs' %}" class="btn btn-danger">Report</a>
     </nav>
 
     <a href="{% url 'add_product' %}" class="btn btn-primary mb-3">เพิ่มสินค้า</a>
+    <a href="{% url 'admin_check_orders' %}" class="btn btn-warning mb-3">📜 ตรวจสอบคำสั่งซื้อ</a> 
 
     <!-- ✅ แสดง messages -->
     {% if messages %}
@@ -65,6 +67,7 @@
                     {% endif %}
                 </td>
                 <td>
+                    <a href="{% url 'edit_product' product.id %}" class="btn btn-info btn-sm">แก้ไข</a>
                     <a href="{% url 'delete_product' product.id %}" class="btn btn-danger btn-sm">ลบ</a>
                 </td>
             </tr>
