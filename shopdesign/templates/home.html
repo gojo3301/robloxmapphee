@@ -5,7 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="path/to/your/css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+        }
+        .navbar ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar li {
+            display: inline;
+            margin-right: 15px;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+        }
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .product-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 250px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .product-item img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+        .product-item button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .product-item button:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,6 +68,7 @@
         <div class="navbar">
             <ul>
                 {% if user.is_authenticated %}
+                    <li><a href="{% url 'cart_view' %}">🛒 ตะกร้าสินค้า <span id="cart-count">0</span></a></li>  
                     <li><a href="{% url 'user_logout' %}">Logout</a></li>  
                 {% else %}
                     <li><a href="{% url 'login' %}">Login</a></li>  
@@ -23,29 +78,105 @@
     </nav>
 
     <!-- ✅ ฟอร์มค้นหา -->
-    <form method="GET" action="{% url 'home' %}">
-        <input type="text" name="search" placeholder="ค้นหาสินค้า..." value="{{ search_query|default:'' }}">
-        <button type="submit">ค้นหา</button>
+    <form method="GET" action="{% url 'home' %}" style="text-align: center; margin-top: 20px;">
+        <input type="text" name="search" placeholder="ค้นหาสินค้า..." value="{{ search_query|default:'' }}" style="padding: 8px; width: 300px;">
+        <button type="submit" style="padding: 8px 12px; background-color: #007bff; color: white; border: none; cursor: pointer;">ค้นหา</button>
     </form>
 
     <!-- แสดงสินค้าหลังจากล็อกอิน -->
     <div class="product-list">
-        <h2>สินค้า</h2>
+        <h2 style="text-align: center; width: 100%;">สินค้า</h2>
         {% if products %}
-            <ul>
-                {% for product in products %}
-                    <li>
-                        <h3>{{ product.name }}</h3>
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" width="150">
-                        <p>{{ product.description }}</p>
-                        <p><strong>ราคา:</strong> {{ product.price }} บาท</p>
-                    </li>
-                {% endfor %}
-            </ul>
+            {% for product in products %}
+                <div class="product-item">
+                    <h3>{{ product.name }}</h3>
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <p>{{ product.description }}</p>
+                    <p><strong>ราคา:</strong> {{ product.price }} บาท</p>
+
+                    <!-- ✅ ปุ่มเพิ่มลงตะกร้าแบบ AJAX -->
+                    {% if user.is_authenticated %}
+                        <button class="add-to-cart" data-product-id="{{ product.id }}">🛒 เพิ่มลงตะกร้า</button>
+                    {% else %}
+                        <p>🔒 กรุณา <a href="{% url 'login' %}">เข้าสู่ระบบ</a> เพื่อสั่งซื้อ</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
         {% else %}
-            <p>ไม่พบสินค้าที่ค้นหา</p>  <!-- ✅ ถ้าหาไม่เจอ -->
+            <p style="text-align: center; width: 100%;">ไม่พบสินค้าที่ค้นหา</p>
         {% endif %}
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let buttons = document.querySelectorAll(".add-to-cart");
+        let cartCount = document.getElementById("cart-count");
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function () {
+                let productId = this.getAttribute("data-product-id");
+
+                fetch(`/cart/add/${productId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),  
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification("✅ เพิ่มสินค้าเข้าตะกร้าเรียบร้อย!");
+                        updateCartCount();
+                    } else {
+                        showNotification("❌ มีบางอย่างผิดพลาด!");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+
+        function getCSRFToken() {
+            let cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                let [name, value] = cookie.trim().split("=");
+                if (name === "csrftoken") {
+                    return value;
+                }
+            }
+            return "";
+        }
+
+        function updateCartCount() {
+            fetch("/cart/count/")
+            .then(response => response.json())
+            .then(data => {
+                cartCount.textContent = data.count;
+            })
+            .catch(error => console.error("Error updating cart count:", error));
+        }
+
+        function showNotification(message) {
+            let notification = document.createElement("div");
+            notification.textContent = message;
+            notification.style.position = "fixed";
+            notification.style.bottom = "20px";
+            notification.style.right = "20px";
+            notification.style.backgroundColor = "#333";
+            notification.style.color = "white";
+            notification.style.padding = "10px 15px";
+            notification.style.borderRadius = "5px";
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        updateCartCount();
+    });
+    </script>
 
 </body>
 </html>

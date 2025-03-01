@@ -1,0 +1,181 @@
+<h2>ตะกร้าสินค้า 🛒</h2>
+
+{% if items %}
+    <ul id="cart-items">
+        {% for item in items %}
+            <li id="item-{{ item.id }}">
+                {{ item.product.name }} - {{ item.quantity }} ชิ้น 
+                <span>ราคา: {{ item.product.price }} บาท</span>
+                <button class="remove-from-cart" data-item-id="{{ item.id }}">❌ ลบ</button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3>💰 ราคารวมทั้งหมด: <span id="total-price">{{ total_price }}</span> บาท</h3>
+
+    <!-- ✅ ปุ่มเปิด Modal ชำระเงิน -->
+    <button id="checkout-button" class="btn btn-primary">✅ ชำระเงิน</button>
+
+    <!-- ✅ Modal เลือกวิธีชำระเงิน -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>💳 เลือกวิธีชำระเงิน</h3>
+            
+            <label>
+                <input type="radio" name="payment_method" value="bank_transfer" checked> โอนเงินผ่านธนาคาร
+            </label><br>
+
+            <button id="confirm-order-button" class="btn btn-success">📦 ยืนยันคำสั่งซื้อ</button>
+        </div>
+    </div>
+
+{% else %}
+    <p>ตะกร้าของคุณว่างเปล่า</p>
+{% endif %}
+
+<a href="/">🔙 กลับไปเลือกสินค้า</a>
+
+<style>
+/* ✅ Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+    text-align: center;
+}
+
+.close {
+    float: right;
+    font-size: 25px;
+    cursor: pointer;
+}
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let modal = document.getElementById("checkout-modal");
+        let checkoutButton = document.getElementById("checkout-button");
+        let closeButton = document.querySelector(".close");
+        let confirmOrderButton = document.getElementById("confirm-order-button");
+    
+        // ✅ เปิด Modal
+        checkoutButton.addEventListener("click", function () {
+            modal.style.display = "block";
+        });
+    
+        // ✅ ปิด Modal
+        closeButton.addEventListener("click", function () {
+            modal.style.display = "none";
+        });
+    
+        // ✅ ยืนยันคำสั่งซื้อ
+        confirmOrderButton.addEventListener("click", function () {
+            let selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    
+            fetch("/checkout/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ payment_method: selectedPaymentMethod })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("✅ คำสั่งซื้อของคุณถูกบันทึกเรียบร้อย!");
+                    modal.style.display = "none";
+                    window.location.href = "/";  // ✅ กลับไปหน้าหลักหลังจากสั่งซื้อสำเร็จ
+                } else {
+                    alert("❌ เกิดข้อผิดพลาดในการชำระเงิน!");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    
+        // ✅ ฟังก์ชันลบสินค้าออกจากตะกร้า
+        let removeButtons = document.querySelectorAll(".remove-from-cart");
+    
+        removeButtons.forEach(button => {
+            button.addEventListener("click", function () {
+                let itemId = this.getAttribute("data-item-id");
+    
+                fetch(`/cart/remove/${itemId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),  
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let itemElement = document.getElementById("item-" + itemId);
+                        if (itemElement) {
+                            itemElement.remove(); // ✅ ลบสินค้าออกจากหน้าเว็บแบบ Real-time
+                        }
+                        updateCartCount();  // ✅ อัปเดตจำนวนสินค้าใน Navbar
+                        updateTotalPrice(data.total_price);  // ✅ อัปเดตราคารวมแบบ Real-time
+                        checkIfCartEmpty(data.total_price);  // ✅ เช็คว่าตะกร้าว่างไหม
+                    } else {
+                        alert("❌ ไม่สามารถลบสินค้าได้!");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            });
+        });
+    
+        function updateCartCount() {
+            fetch("/cart/count/")
+            .then(response => response.json())
+            .then(data => {
+                let cartCountElement = document.getElementById("cart-count");
+                if (cartCountElement) {
+                    cartCountElement.textContent = data.count;
+                }
+            })
+            .catch(error => console.error("Error updating cart count:", error));
+        }
+    
+        function updateTotalPrice(newTotalPrice) {
+            let totalPriceElement = document.getElementById("total-price");
+            if (totalPriceElement) {
+                totalPriceElement.textContent = newTotalPrice.toFixed(2);  // ✅ อัปเดตราคารวมใหม่
+            }
+        }
+    
+        function checkIfCartEmpty(newTotalPrice) {
+            if (newTotalPrice === 0) {
+                document.getElementById("cart-items").innerHTML = "<p>ตะกร้าของคุณว่างเปล่า</p>";
+                document.getElementById("total-price").textContent = "0";  // ✅ ตั้งค่าราคารวมเป็น 0
+            }
+        }
+    
+        function getCSRFToken() {
+            let cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+                let [name, value] = cookie.trim().split("=");
+                if (name === "csrftoken") {
+                    return value;
+                }
+            }
+            return "";
+        }
+    });
+    </script>
+    
