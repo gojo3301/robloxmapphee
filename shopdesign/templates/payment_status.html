@@ -7,34 +7,43 @@
             <h2>📄 รายละเอียดการสั่งซื้อ</h2>
             <p><strong>วันที่สั่งซื้อ:</strong> {{ order.created_at }}</p>        
 
-                <table class="order-table">
-                    <tr>
-                        <th>สินค้า</th>
-                        <th>จำนวน</th>
-                        <th>ราคา</th>
-                    </tr>
-                    {% for item in order.items.all %}
-                    <tr>
-                        <td>{{ item.product.name }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.product.price }} บาท</td>
-                    </tr>
-                    {% endfor %}
-                </table>
+            <table class="order-table">
+                <tr>
+                    <th>สินค้า</th>
+                    <th>จำนวน</th>
+                    <th>ราคา</th>
+                </tr>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.product.price }} บาท</td>
+                </tr>
+                {% endfor %}
+            </table>
 
-                <h3 class="total-price">💰 ราคารวม: <strong>{{ order.total_price }}</strong> บาท</h3>
+            <h3 class="total-price">💰 ราคารวม: <strong>{{ order.total_price }} บาท</strong></h3>
 
-                <h2 class="text-xl font-semibold">💳 สถานะการชำระเงิน</h2>
-                {% if order.status == "waiting_payment" %}
-                    <p class="status pending">⏳ กำลังดำเนินการ (รอแอดมินตรวจสอบ)</p>
-                {% elif order.status == "completed" %}
-                    <p class="status success">✅ ชำระเงินเสร็จสิ้น</p>
-                {% elif order.status == "canceled" %}
-                    <p class="status failed">❌ คำสั่งซื้อถูกยกเลิก</p>
-                {% else %}
-                    <p class="status unknown">❓ สถานะไม่ทราบ</p>
-                {% endif %}
-            </div>
+            <h2 class="text-xl font-semibold">💳 สถานะการชำระเงิน</h2>
+            {% if order.status == "waiting_payment" %}
+                <p class="status pending">⏳ รอแอดมินตรวจสอบ</p>
+            {% elif order.status == "approved" %}
+                <p class="status success">✅ อนุมัติแล้ว</p>
+            {% elif order.status == "rejected" %}
+                <p class="status failed">❌ ถูกปฏิเสธ</p>
+            {% elif order.status == "completed" %}
+                <p class="status success">🎉 สำเร็จ</p>
+            {% endif %}
+
+            {% if order.payment_slip %}
+                <h2 class="text-xl font-semibold">📜 สลิปการโอนเงิน</h2>
+                <a href="{{ order.payment_slip.url }}" target="_blank">
+                    <img src="{{ order.payment_slip.url }}" alt="สลิป" width="150">
+                </a>
+            {% else %}
+                <p>❌ ไม่มีสลิป</p>
+            {% endif %}
+        </div>
         {% endfor %}
     {% else %}
         <p>❌ ไม่มีประวัติการสั่งซื้อ</p>
@@ -69,6 +78,13 @@
         border: 1px solid #ddd;
         padding: 8px;
     }
+    .status {
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .pending { color: orange; }
+    .success { color: green; }
+    .failed { color: red; }
     .btn-shop-more {
         display: block;
         text-align: center;

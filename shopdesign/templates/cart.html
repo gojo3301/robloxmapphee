@@ -8,17 +8,16 @@
                     <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-item-img">
                     <div class="cart-item-details">
                         <p class="product-name">{{ item.product.name }}</p>
-                        <p>จำนวน: {{ item.quantity }} ชิ้น</p>
+                        <p>จำนวน: <span class="item-quantity">{{ item.quantity }}</span> ชิ้น</p>
                         <p class="product-price">💰 ราคา: {{ item.product.price }} บาท</p>
                     </div>
-                    <button class="remove-from-cart" data-item-id="{{ item.id }}">❌ ลบ</button>
+                    <button class="remove-from-cart" data-item-id="{{ item.id }}" data-product-id="{{ item.product.id }}" data-quantity="{{ item.quantity }}">❌ ลบ</button>
                 </li>
             {% endfor %}
         </ul>
 
         <h3 class="total-price">💰 ราคารวมทั้งหมด: <span id="total-price">{{ total_price }}</span> บาท</h3>
 
-        <!-- ✅ ปุ่ม "ชำระเงิน" นำผู้ใช้ไปที่ checkout.html ทันที -->
         <a href="{% url 'checkout' %}" class="btn-primary">✅ ชำระเงิน</a>
     {% else %}
         <p class="empty-cart">🛍 ตะกร้าของคุณว่างเปล่า</p>
@@ -160,17 +159,18 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // ✅ ฟังก์ชันลบสินค้าออกจากตะกร้า
         let removeButtons = document.querySelectorAll(".remove-from-cart");
 
         removeButtons.forEach(button => {
             button.addEventListener("click", function () {
                 let itemId = this.getAttribute("data-item-id");
+                let productId = this.getAttribute("data-product-id");
+                let quantity = parseInt(this.getAttribute("data-quantity"));
 
                 fetch(`/cart/remove/${itemId}/`, {
                     method: "POST",
                     headers: {
-                        "X-CSRFToken": getCSRFToken(),  
+                        "X-CSRFToken": getCSRFToken(),
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({})
@@ -180,11 +180,12 @@
                     if (data.success) {
                         let itemElement = document.getElementById("item-" + itemId);
                         if (itemElement) {
-                            itemElement.remove(); // ✅ ลบสินค้าออกจากหน้าเว็บแบบ Real-time
+                            itemElement.remove(); 
                         }
-                        updateCartCount();  // ✅ อัปเดตจำนวนสินค้าใน Navbar
-                        updateTotalPrice(data.total_price);  // ✅ อัปเดตราคารวมแบบ Real-time
-                        checkIfCartEmpty(data.total_price);  // ✅ เช็คว่าตะกร้าว่างไหม
+                        updateCartCount();  
+                        updateTotalPrice(data.total_price);  
+                        checkIfCartEmpty(data.total_price);  
+                        updateStockDisplay(productId, quantity);
                     } else {
                         alert("❌ ไม่สามารถลบสินค้าได้!");
                     }
@@ -208,14 +209,23 @@
         function updateTotalPrice(newTotalPrice) {
             let totalPriceElement = document.getElementById("total-price");
             if (totalPriceElement) {
-                totalPriceElement.textContent = newTotalPrice.toFixed(2);  // ✅ อัปเดตราคารวมใหม่
+                totalPriceElement.textContent = newTotalPrice.toFixed(2);  
             }
         }
 
         function checkIfCartEmpty(newTotalPrice) {
             if (newTotalPrice === 0) {
                 document.getElementById("cart-items").innerHTML = "<p class='empty-cart'>🛍 ตะกร้าของคุณว่างเปล่า</p>";
-                document.getElementById("total-price").textContent = "0";  // ✅ ตั้งค่าราคารวมเป็น 0
+                document.getElementById("total-price").textContent = "0";  
+            }
+        }
+
+        function updateStockDisplay(productId, quantity) {
+            let stockElement = document.querySelector(`[data-product-id="${productId}"] .product-stock`);
+            if (stockElement) {
+                let newStock = parseInt(stockElement.textContent) + quantity;
+                stockElement.textContent = newStock + " ชิ้น";
+                stockElement.style.color = "green";
             }
         }
 

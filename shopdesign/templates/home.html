@@ -154,12 +154,26 @@
             {% for product in products %}
                 <div class="product-item">
                     <h3>{{ product.name }}</h3>
+                    <p><strong>ประเภท:</strong> {{ product.get_battery_type_display }}</p>
                     <img src="{{ product.image.url }}" alt="{{ product.name }}">
                     <p>{{ product.description }}</p>
                     <p><strong>ราคา:</strong> {{ product.price }} บาท</p>
-
+                    <p><strong>จำนวนในสต็อก:</strong> 
+                        <span class="product-stock">
+                            {% if product.stock > 0 %}
+                                <span style="color: green;">{{ product.stock }} ชิ้น</span>
+                            {% else %}
+                                <span style="color: red; font-weight: bold;">❌ สินค้าหมด</span>
+                            {% endif %}
+                        </span>
+                    </p>
+    
                     {% if user.is_authenticated %}
-                        <button class="add-to-cart" data-product-id="{{ product.id }}">🛒 เพิ่มลงตะกร้า</button>
+                        {% if product.stock > 0 %}
+                            <button class="add-to-cart" data-product-id="{{ product.id }}">🛒 เพิ่มลงตะกร้า</button>
+                        {% else %}
+                            <button class="add-to-cart" disabled style="background-color: gray; cursor: not-allowed;">❌ สินค้าหมด</button>
+                        {% endif %}
                     {% else %}
                         <p>🔒 กรุณา <a href="{% url 'login' %}">เข้าสู่ระบบ</a> เพื่อสั่งซื้อ</p>
                     {% endif %}
@@ -171,61 +185,70 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let buttons = document.querySelectorAll(".add-to-cart");
-        let cartCount = document.getElementById("cart-count");
-
-        buttons.forEach(button => {
-            button.addEventListener("click", function () {
-                let productId = this.getAttribute("data-product-id");
-
-                fetch(`/cart/add/${productId}/`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getCSRFToken(),  
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({})
-                })
+        document.addEventListener("DOMContentLoaded", function () {
+            let buttons = document.querySelectorAll(".add-to-cart");
+        
+            buttons.forEach(button => {
+                button.addEventListener("click", function () {
+                    let productId = this.getAttribute("data-product-id");
+                    let stockElement = this.closest(".product-item").querySelector(".product-stock");
+        
+                    fetch(`/cart/add/${productId}/`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": getCSRFToken(),  
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            updateCartCount();
+                            alert("✅ เพิ่มสินค้าเข้าตะกร้าเรียบร้อย!");
+        
+                            // ✅ อัปเดตจำนวน stock บน UI
+                            if (stockElement) {
+                                stockElement.textContent = `${data.new_stock} ชิ้น`;
+                                if (data.new_stock === 0) {
+                                    stockElement.style.color = "red";
+                                    stockElement.innerHTML = "❌ สินค้าหมด";
+                                    button.disabled = true;
+                                    button.style.backgroundColor = "gray";
+                                    button.style.cursor = "not-allowed";
+                                }
+                            }
+                        } else {
+                            alert("❌ " + data.error);
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                });
+            });
+        
+            function getCSRFToken() {
+                let cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    let [name, value] = cookie.trim().split("=");
+                    if (name === "csrftoken") {
+                        return value;
+                    }
+                }
+                return "";
+            }
+        
+            function updateCartCount() {
+                fetch("/cart/count/")
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        updateCartCount();  // ✅ อัปเดตจำนวนสินค้าใน Navbar
-                        alert("✅ เพิ่มสินค้าเข้าตะกร้าเรียบร้อย!");
-                    } else {
-                        alert("❌ มีบางอย่างผิดพลาด!");
+                    let cartCountElement = document.getElementById("cart-count");
+                    if (cartCountElement) {
+                        cartCountElement.textContent = data.count;
                     }
                 })
-                .catch(error => console.error("Error:", error));
-            });
-        });
-
-        function updateCartCount() {
-            fetch("/cart/count/")
-            .then(response => response.json())
-            .then(data => {
-                let cartCountElement = document.getElementById("cart-count");
-                if (cartCountElement) {
-                cartCountElement.textContent = data.count;  // ✅ อัปเดตจำนวนสินค้าทันที
-                }
-            })
-            .catch(error => console.error("Error updating cart count:", error));
-        }
-
-        function getCSRFToken() {
-            let cookies = document.cookie.split(";");
-            for (let cookie of cookies) {
-                let [name, value] = cookie.trim().split("=");
-                if (name === "csrftoken") {
-                    return value;
-                }
+                .catch(error => console.error("Error updating cart count:", error));
             }
-            return "";
-        }
-
-        // ✅ อัปเดตจำนวนสินค้าในตะกร้าเมื่อโหลดหน้า
-        updateCartCount();
-    });
+        });
     </script>
 
 </body>

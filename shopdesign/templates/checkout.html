@@ -17,7 +17,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            <h3 class="total-price">💰 ราคารวมทั้งหมด: <strong>{{ total_price }}</strong> บาท</h3>
+            <h3 class="total-price">💰 ราคารวมทั้งหมด: <strong>{{ total_price }} บาท</strong></h3>
         {% else %}
             <p>❌ ไม่มีสินค้าในตะกร้า</p>
         {% endif %}
@@ -37,85 +37,24 @@
         <h2 class="text-xl font-semibold">📤 อัปโหลดสลิปโอนเงิน</h2>
         <form action="{% url 'process_order' %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <input type="file" name="payment_slip" accept="image/*" required>
+            <input type="file" name="payment_slip" accept="image/*" required id="slipUpload">
+            <img id="slipPreview" src="#" alt="ตัวอย่างสลิป" style="display:none; width: 100px; margin-top: 10px;">
             <button type="submit" class="btn-confirm">✅ ส่งหลักฐานการชำระเงิน</button>
         </form>
-        
-        
     </div>
 
     <!-- ✅ ปุ่มยกเลิกการชำระเงิน -->
     <button onclick="window.location.href='/'" class="btn-cancel">❌ ยกเลิกการชำระเงิน</button>
 </div>
 
-<style>
-    .checkout-container {
-        max-width: 600px;
-        margin: auto;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-    }
-    .cart-list {
-        list-style-type: none;
-        padding: 0;
-    }
-    .cart-item {
-        display: flex;
-        align-items: center;
-        border-bottom: 1px solid #ddd;
-        padding: 10px;
-    }
-    .cart-item-img {
-        width: 50px;
-        height: 50px;
-        margin-right: 10px;
-        border-radius: 5px;
-    }
-    .cart-item-details {
-        text-align: left;
-    }
-    .total-price {
-        margin-top: 15px;
-        font-size: 18px;
-        font-weight: bold;
-    }
-    .payment-details, .upload-slip {
-        margin-top: 20px;
-        text-align: left;
-        background: #fff;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
-    }
-    .btn-confirm {
-        display: block;
-        width: 100%;
-        padding: 10px;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        cursor: pointer;
-        margin-top: 10px;
-        border-radius: 5px;
-    }
-    .btn-confirm:hover {
-        background-color: #218838;
-    }
-    .btn-cancel {
-        display: block;
-        width: 100%;
-        padding: 10px;
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        cursor: pointer;
-        margin-top: 10px;
-        border-radius: 5px;
-    }
-    .btn-cancel:hover {
-        background-color: #c82333;
-    }
-</style>
+<script>
+    document.getElementById('slipUpload').addEventListener('change', function(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const preview = document.getElementById('slipPreview');
+            preview.src = reader.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    });
+</script>
