@@ -17,7 +17,9 @@
                 <th>รหัสคำสั่งซื้อ</th>
                 <th>ผู้ใช้</th>
                 <th>วันที่สั่งซื้อ</th>
+                <th>รายละเอียดสินค้า</th>
                 <th>สลิปชำระเงิน</th>
+                <th>ราคารวม</th>
                 <th>การจัดการ</th>
             </tr>
         </thead>
@@ -28,6 +30,13 @@
                 <td>{{ order.user.username }}</td>
                 <td>{{ order.created_at }}</td>
                 <td>
+                    <ul class="list-unstyled">
+                        {% for item in order.items.all %}
+                            <li>{{ item.product.name }} ({{ item.quantity }} ชิ้น) - {{ item.product.price }} บาท</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
                     {% if order.payment_slip %}
                         <a href="{{ order.payment_slip.url }}" target="_blank">
                             <img src="{{ order.payment_slip.url }}" alt="สลิป" width="100">
@@ -36,6 +45,7 @@
                         ❌ ไม่มีสลิป
                     {% endif %}
                 </td>
+                <td><strong>{{ order.total_price }} บาท</strong></td>
                 <td>
                     <a href="{% url 'update_order_status' order.id 'approve' %}" class="btn btn-success btn-sm">✅ อนุมัติ</a>
                     <a href="{% url 'update_order_status' order.id 'reject' %}" class="btn btn-danger btn-sm">❌ ปฏิเสธ</a>
